@@ -372,6 +372,13 @@ export interface AuthResult {
  * servidor MCP podría reutilizarse aquí (confused deputy).
  */
 export async function authenticate(request: Request, env: Env): Promise<AuthResult> {
+  // Solo para desarrollo local: define DEV_SKIP_AUTH=1 en .dev.vars (nunca en
+  // wrangler.jsonc ni como secreto desplegado) para saltarse el login OAuth
+  // contra una instancia que corre exclusivamente en localhost.
+  if ((env as unknown as { DEV_SKIP_AUTH?: string }).DEV_SKIP_AUTH === '1') {
+    return { ok: true };
+  }
+
   const header = request.headers.get('Authorization') ?? '';
   const match = /^Bearer\s+(.+)$/i.exec(header.trim());
   if (!match?.[1]) {

@@ -7,7 +7,10 @@
 
   // Dominio propio. Cloudflare crea y mantiene el registro DNS automáticamente.
   // Ojo: definir `routes` deshabilita la URL *.workers.dev por defecto.
-  "routes": [{ "pattern": "solotodo.mmoraga.dev", "custom_domain": true }],
+  // Comentado para desarrollo local: `routes` hace que wrangler dev simule ese
+  // host en request.url, lo que rompe el resource URL dinámico de OAuth contra
+  // localhost. Descomentar solo para `npm run deploy`.
+  // "routes": [{ "pattern": "solotodo.mmoraga.dev", "custom_domain": true }],
 
   // Estado de autorización OAuth (clientes, códigos y tokens).
   "d1_databases": [

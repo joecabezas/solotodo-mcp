@@ -1,7 +1,8 @@
 # Copiar a .dev.vars para desarrollo local (wrangler dev).
 # .dev.vars está en .gitignore: nunca subas la clave real al repo.
 
-# Clave maestra del login OAuth. Obligatoria: sin ella /oauth/authorize responde 500.
+# Clave maestra del login OAuth. Obligatoria si NO usas DEV_SKIP_AUTH (ver
+# abajo): sin ella /oauth/authorize responde 500.
 # En producción se define con:  npx wrangler secret put MCP_AUTH_PASSWORD
 MCP_AUTH_PASSWORD=clave-solo-para-desarrollo-local
 
@@ -9,3 +10,10 @@ MCP_AUTH_PASSWORD=clave-solo-para-desarrollo-local
 # SOLOTODO_API_BASE=https://publicapi.solotodo.com
 # SOLOTODO_CACHE_TTL=900
 # SOLOTODO_TIMEOUT_MS=20000
+
+# Salta el login OAuth por completo para desarrollo 100% local (uso con un
+# solo cliente MCP en tu propia máquina, sin exponer el server a la red).
+# Descomenta la línea de abajo si no quieres pasar por el flujo de login.
+# NUNCA definir esto en wrangler.jsonc ni con `wrangler secret put` — eso sí
+# afectaría una instancia desplegada y la dejaría sin autenticación.
+# DEV_SKIP_AUTH=1

@@ -1,6 +1,13 @@
-# SoloTodo MCP
+# SoloTodo MCP (fork local-ready)
 
-**En producción:** `https://solotodo.mmoraga.dev/mcp` — protegido con OAuth 2.1, de un solo usuario.
+> Este es un fork de [mmogaP/solotodo-mcp](https://github.com/mmogaP/solotodo-mcp),
+> pensado para correr **100% local, sin desplegar a Cloudflare y sin clave maestra**.
+> El repo original es de un solo usuario, con OAuth 2.1 obligatorio contra una
+> instancia desplegada por su autor (`solotodo.mmoraga.dev`) — no es de acceso
+> público y su clave maestra no se comparte. Este fork agrega un modo
+> `DEV_SKIP_AUTH` para que cualquiera pueda clonarlo, correrlo en su propia
+> máquina y conectarlo a su cliente MCP sin depender de esa instancia ajena.
+> Ver [Uso local](#uso-local-recomendado-para-este-fork) más abajo.
 
 Servidor [MCP](https://modelcontextprotocol.io) que expone los datos públicos de
 [SoloTodo.cl](https://www.solotodo.cl) —precios, specs, historial y evaluaciones— como
@@ -12,6 +19,72 @@ En vez de abrir fichas una por una en el sitio, le pides a tu asistente:
 
 y el agente filtra, compara el historial y responde. Se apoya en la API pública
 (`publicapi.solotodo.com`); no hay scraping de HTML.
+
+---
+
+## Uso local (recomendado para este fork)
+
+Pensado para un solo desarrollador/agente corriendo el servidor en su propia
+máquina, sin exponerlo a la red ni depender de OAuth.
+
+```bash
+git clone https://github.com/joecabezas/solotodo-mcp.git
+cd solotodo-mcp
+npm install
+
+# 1. Copia el archivo de variables de desarrollo
+cp .dev.vars.example .dev.vars
+
+# 2. Edita .dev.vars y descomenta DEV_SKIP_AUTH=1
+#    (con esto NO necesitas MCP_AUTH_PASSWORD ni pasar por el login OAuth)
+
+# 3. Levanta el servidor
+npm run dev        # http://localhost:8787/mcp
+```
+
+Conéctalo desde Claude Code (o cualquier cliente MCP compatible con HTTP):
+
+```bash
+claude mcp add --transport http solotodo http://localhost:8787/mcp
+```
+
+Con `DEV_SKIP_AUTH=1` no hace falta `claude mcp login` — el servidor acepta
+cualquier request a `/mcp` sin token. **Esto es intencional solo para uso
+local de un único usuario**; nunca actives `DEV_SKIP_AUTH` en una instancia
+desplegada o accesible por red (ver advertencia de seguridad más abajo).
+
+### Si `filtros_categoria` o `buscar_productos` fallan con "Unexpected end of JSON input"
+
+Es un problema de caché local corrupta (Cache API de Cloudflare, persistida en
+disco por Miniflare entre reinicios de `wrangler dev`), no un bug de la API
+upstream. Se soluciona así:
+
+```bash
+# Detén el servidor (Ctrl+C o mata el proceso de wrangler dev), luego:
+rm -rf .wrangler/state/v3/cache
+npm run dev
+```
+
+Si te pasa seguido durante desarrollo activo (probando requests manuales con
+curl contra el mismo `wrangler dev`), puedes desactivar la caché por completo
+agregando a `.dev.vars`:
+
+```
+SOLOTODO_CACHE_TTL=0
+```
+
+### ⚠️ Advertencia de seguridad sobre `DEV_SKIP_AUTH`
+
+- Solo tiene efecto si está definido en `.dev.vars` (que `wrangler dev` lee
+  automáticamente). **Nunca** lo agregues a `wrangler.jsonc` ni lo definas con
+  `wrangler secret put` — eso sí afectaría una instancia real desplegada,
+  dejándola sin autenticación para cualquiera que encuentre la URL.
+- `.dev.vars` está en `.gitignore`: nunca se sube al repo.
+- Si vas a desplegar este fork a Cloudflare Workers para uso propio (no solo
+  local), vuelve a activar OAuth normal (`MCP_AUTH_PASSWORD`, sin
+  `DEV_SKIP_AUTH`) y descomenta el bloque `routes` en `wrangler.jsonc` (ver
+  nota en ese archivo — comentado a propósito porque rompe el resource URL de
+  OAuth cuando corres en local).
 
 ---
 
@@ -45,7 +118,12 @@ paga no bajó, lo marca explícitamente.
 
 ---
 
-## Uso rápido
+## Uso rápido (con OAuth, como el repo original)
+
+> Si solo quieres correrlo local para ti, ve a [Uso local](#uso-local-recomendado-para-este-fork)
+> arriba — es más simple y no requiere clave maestra. Esta sección es la
+> configuración original con OAuth, útil si vas a desplegar a Cloudflare o
+> compartir el servidor con más de un cliente/dispositivo.
 
 ```bash
 npm install
