@@ -53,6 +53,20 @@ claude mcp add --transport http solotodo "http://[::1]:8787/mcp"
 > que con el servidor apagado el cliente MCP se queda colgado hasta su timeout
 > (~30 s). `[::1]` rechaza al instante. `wrangler.jsonc` fija `dev.ip` a `::1`.
 
+#### Alternativa: stdio (sin dejar nada corriendo)
+
+Con el transporte HTTP el servidor tiene que estar levantado *antes* de abrir
+la sesión; si no, el cliente reporta `ECONNREFUSED`. Para que el propio cliente
+lo lance al iniciar cada sesión y lo cierre al salir, usa el entrypoint stdio
+(`src/stdio.ts`), que no necesita `wrangler dev`, `.dev.vars` ni OAuth:
+
+```bash
+claude mcp add -s user solotodo -- "$PWD/node_modules/.bin/tsx" "$PWD/src/stdio.ts"
+```
+
+Expone las mismas herramientas. Fuera de Workers no hay Cache API, así que
+cada llamada consulta directo a la API de SoloTodo.
+
 Con `DEV_SKIP_AUTH=1` no hace falta `claude mcp login` — el servidor acepta
 cualquier request a `/mcp` sin token. **Esto es intencional solo para uso
 local de un único usuario**; nunca actives `DEV_SKIP_AUTH` en una instancia

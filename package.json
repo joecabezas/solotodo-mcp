@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "stdio": "tsx src/stdio.ts",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.4.1",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.0",
     "vitest": "~3.2.0",
     "wrangler": "^4.128.0"
