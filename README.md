@@ -39,14 +39,19 @@ cp .dev.vars.example .dev.vars
 #    (con esto NO necesitas MCP_AUTH_PASSWORD ni pasar por el login OAuth)
 
 # 3. Levanta el servidor
-npm run dev        # http://localhost:8787/mcp
+npm run dev        # http://[::1]:8787/mcp
 ```
 
 Conéctalo desde Claude Code (o cualquier cliente MCP compatible con HTTP):
 
 ```bash
-claude mcp add --transport http solotodo http://localhost:8787/mcp
+claude mcp add --transport http solotodo "http://[::1]:8787/mcp"
 ```
+
+> Se usa `[::1]` y no `localhost` a propósito: en WSL con
+> `networkingMode=mirrored`, un puerto cerrado en `127.0.0.1` no responde, así
+> que con el servidor apagado el cliente MCP se queda colgado hasta su timeout
+> (~30 s). `[::1]` rechaza al instante. `wrangler.jsonc` fija `dev.ip` a `::1`.
 
 Con `DEV_SKIP_AUTH=1` no hace falta `claude mcp login` — el servidor acepta
 cualquier request a `/mcp` sin token. **Esto es intencional solo para uso
@@ -127,7 +132,7 @@ paga no bajó, lo marca explícitamente.
 
 ```bash
 npm install
-npm run dev        # http://localhost:8787/mcp
+npm run dev        # http://[::1]:8787/mcp
 npm test           # pruebas unitarias y de protocolo (sin red)
 npm run test:live  # pruebas contra la API real de SoloTodo
 npm run deploy     # despliegue a Cloudflare Workers
